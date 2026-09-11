@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<color_calibration_matrix type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>f</dt>
+  <data>
+    6.13272011e-01 -7.53550902e-02 6.25958368e-02 1.03993520e-01
+    6.40056372e-01 -8.65357742e-02 -4.32956442e-02 -1.35180540e-03
+    5.46627104e-01</data></color_calibration_matrix>
+<calibration_gamma>2.4000000953674316e+00</calibration_gamma>
+</opencv_storage>

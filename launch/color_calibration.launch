@@ -1,0 +1,13 @@
+<launch>
+    <arg name="color_gamma" default="2.4" />
+    <arg name="input_topic" default="/zed2i/zed_node/rgb/image_rect_color" />
+    <arg name="output_topic" default="/color_calibration/debug" />
+
+    <param name="color_calibration_matrix_path" value="$(find color_calibration)/config/color_calibration_matrix.xml" />
+
+    <node pkg="color_calibration" type="color_calibration_node" name="color_calibration" output="screen">
+        <param name="gamma" value="$(arg color_gamma)" />
+        <param name="input_topic" value="$(arg input_topic)" />
+        <param name="output_topic" value="$(arg output_topic)" />
+    </node>
+</launch>

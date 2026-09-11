@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>color_calibration</name>
+  <version>0.1.0</version>
+  <description>ROS package for camera color calibration and correction using a 24-patch color chart.</description>
+  <maintainer email="michalrej25@gmail.com">Michał Rejdak</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- ROS MSGS DEPEND -->
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <!-- ROS PACKAGE DEPEND -->
+  <depend>roscpp</depend>
+  <depend>cv_bridge</depend>
+
+  <!-- OPENCV DEPEND -->
+  <depend>OpenCV</depend>
+</package>
