@@ -1,0 +1,36 @@
+# **CONFIG**
+# gamma{
+#     possible values: float
+#         shared gamma for linearization; must match between calibration and correction
+# }
+# calibration_matrix_rows{
+#     possible values: {3, 4}
+#         3 - calculates calibration matrix without bias - [R G B] * M(3,3) = [R' G' B']
+#         4 - calculates calibration matrix with bias - [R G B 1] * M(4,3) = [R' G' B'] - (adds black offset correction)
+# }
+# total_samples{
+#     possible values: int
+#         determines how many acceptable samples are collected before calculating calibration matrix
+# }
+# k_best{
+#     possible values: int
+#         determines how many acceptable samples are used for calculating calibration matrix
+# }
+# confidence_threshold{
+#     possible values: [0., 1.]
+#         confidence threshold for found charts
+# }
+
+gamma: 2.4
+
+calibration_matrix_rows: 3
+
+total_samples: 20
+
+k_best: 15
+
+confidence_threshold: 0.8
+
+# **Debug** visualization (calibration node; does not calculate calibration matrix when true)
+visualize_patches: false  # warped chart with patch ROIs
+visualize_chart: false    # raw image with detected chart outline

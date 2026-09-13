@@ -4,7 +4,15 @@
 
 ColorCalibration::ColorCalibration(ros::NodeHandle* nh) {
     ros::param::param<std::string>("color_calibration_matrix_path", calibration_matrix_path, "");
+
+    nh->param("calibration_matrix_rows", calibration_matrix_rows, 3);
+    nh->param("k_best", k_best, 15);
+    nh->param("total_samples", total_samples, 20);
+    nh->param("confidence_threshold", confidence_threshold, 0.8f);
     nh->param("gamma", gamma, 2.4f);
+    nh->param("visualize_patches", visualize_patches, false);
+    nh->param("visualize_chart", visualize_chart, false);
+
     if(calibration_matrix_path.empty()) {
         ROS_ERROR("[COLOR CALIBRATION] 'color_calibration_matrix_path' param not set");
     }
@@ -12,7 +20,7 @@ ColorCalibration::ColorCalibration(ros::NodeHandle* nh) {
         ROS_ERROR("[COLOR CALIBRATION] Invalid gamma (%f), using default 2.4", gamma);
         gamma = 2.4f;
     }
-    if(CALIBRATION_MATRIX_ROWS == 3 || CALIBRATION_MATRIX_ROWS == 4) {
+    if(calibration_matrix_rows == 3 || calibration_matrix_rows == 4) {
         std::string input_topic = "/zed2i/zed_node/rgb/image_rect_color";
         std::string output_topic = "/color_calibration/debug";
         nh->param("input_topic", input_topic, input_topic);
@@ -23,7 +31,7 @@ ColorCalibration::ColorCalibration(ros::NodeHandle* nh) {
         ROS_INFO("[COLOR CALIBRATION] Initialized (input: %s, output: %s)", input_topic.c_str(), output_topic.c_str());
     }
     else {
-        ROS_ERROR("[COLOR CALIBRATION] ERROR: Illegal CALIBRATION_MATRIX_ROWS config");
+        ROS_ERROR("[COLOR CALIBRATION] ERROR: Illegal calibration_matrix_rows config");
     }
 }
 
@@ -40,7 +48,7 @@ void ColorCalibration::imageCallback(const sensor_msgs::ImageConstPtr& image_msg
     cv::Mat H;
     float confidence = findChartWithConfidence(image, debug_image, H);
 
-    if(confidence < CONFIDENCE_THRESHOLD){
+    if(confidence < confidence_threshold){
         sensor_msgs::ImagePtr chartDrawn = cv_bridge::CvImage(std_msgs::Header(), "bgr8", debug_image).toImageMsg();
         chartDrawn->header.stamp = image_msg->header.stamp;
         chart_pub.publish(chartDrawn);
@@ -60,7 +68,7 @@ void ColorCalibration::imageCallback(const sensor_msgs::ImageConstPtr& image_msg
     /* 
         Visualization of warped image with ROI and center points marked
     */
-    if(VISUALIZE_PATCHES) {
+    if(visualize_patches) {
         lock.unlock();
 
         cv::Mat chart_vis;
@@ -91,13 +99,13 @@ void ColorCalibration::imageCallback(const sensor_msgs::ImageConstPtr& image_msg
     /*
         Averaging top K of accepted_samples
     */
-    if (accepted_samples.size() == TOTAL_SAMPLES) {
+    if (accepted_samples.size() == static_cast<std::size_t>(total_samples)) {
         std::sort(accepted_samples.begin(), accepted_samples.end(), 
             [](const SampleWithConfidence& a, const SampleWithConfidence& b){ return a.confidence > b.confidence; });
 
-        accepted_samples.resize(K_BEST);
+        accepted_samples.resize(k_best);
 
-        // Average samples across all K_BEST samples
+        // Average samples across all k_best samples
         std::array<ColorSample, 24> averaged_samples;
         for(int i = 0; i < 24; i++) {
             cv::Vec3d sum_bgr(0.0, 0.0, 0.0);
@@ -117,7 +125,7 @@ void ColorCalibration::imageCallback(const sensor_msgs::ImageConstPtr& image_msg
             };
         }
 
-        cv::Mat observed_patches(24, CALIBRATION_MATRIX_ROWS, CV_32F);
+        cv::Mat observed_patches(24, calibration_matrix_rows, CV_32F);
         cv::Mat color_calibration_mat;
         
         for(int i = 0; i < 24; i++) {
@@ -125,7 +133,7 @@ void ColorCalibration::imageCallback(const sensor_msgs::ImageConstPtr& image_msg
             observed_patches.at<float>(i, 0) = averaged_samples[i].mean_bgr[2];
             observed_patches.at<float>(i, 1) = averaged_samples[i].mean_bgr[1];
             observed_patches.at<float>(i, 2) = averaged_samples[i].mean_bgr[0];
-            if(CALIBRATION_MATRIX_ROWS == 4) observed_patches.at<float>(i, 3) = 1.0f;
+            if(calibration_matrix_rows == 4) observed_patches.at<float>(i, 3) = 1.0f;
         }
 
         cv::Mat ref_patches_linear;
@@ -229,7 +237,7 @@ float ColorCalibration::findChartWithConfidence(const cv::Mat& image, cv::Mat& O
         return 0.0f;
     }
     
-    if(VISUALIZE_CHART){
+    if(visualize_chart){
         /*
             Visualization of image with all accepted rectangles drawn
         */

@@ -6,6 +6,7 @@
     <param name="color_calibration_matrix_path" value="$(find color_calibration)/config/color_calibration_matrix.xml" />
 
     <node pkg="color_calibration" type="color_calibration_node" name="color_calibration" output="screen">
+        <rosparam command="load" file="$(find color_calibration)/config/color_calibration.yaml" />
         <param name="gamma" value="$(arg color_gamma)" />
         <param name="input_topic" value="$(arg input_topic)" />
         <param name="output_topic" value="$(arg output_topic)" />

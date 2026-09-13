@@ -2,7 +2,7 @@
 
 ROS package for camera color calibration and correction using a 24-patch Macbeth Color Checker. It estimates a per-camera color correction matrix from live images, saves it to disk, and applies it at runtime to correct incoming camera frames.
 
-Originally developed as an experimental part of a cone-detection pipeline, where colors were corrected to standardize them under varying lighting, in order to improve yellow/blue/orange classification. This package contains only the calibration and correction components.
+Originally developed as an experimental part of a cone-detection pipeline, where color correction was used to standardize colors under varying conditions and improve yellow/blue/orange classification. This package contains only the calibration and correction components.
 
 ---
 
@@ -142,7 +142,25 @@ roslaunch color_calibration color_correction.launch \
   </tr>
 </table>
 
-> **Note:** Corrected output here looks worse than normal conditions - the initial goal was to standardize the colors between different conditions. The yellowish tone is probably a result of a few factors - mainly because of the fact that the Color Checker we used was printed by us on a not-so-high-quality printer and the gamma parameter was chosen by trial and error, since it wasn't provided in the specification of our camera.
+> **Note:** Corrected output appears worse than the original — the initial goal was to standardize colors across different conditions. The yellowish tone is likely a result of a several factors - mainly due to the fact that the Color Checker we used was printed by us on a not-so-high-quality printer and that the gamma parameter was chosen by trial and error, since it wasn't provided in the specification of our camera.
+
+---
+
+## Configuration
+
+Both launch files load `config/color_calibration.yaml`. Launch arguments override topic names and `gamma` after the YAML is loaded.
+
+| Parameter | Default | Used by | Description |
+|-----------|---------|---------|-------------|
+| `gamma` | `2.4` | both | Gamma for linearization; must match between calibrate and correct |
+| `calibration_matrix_rows` | `3` | calibration | `3` = 3×3 matrix, `4` = 3×4 with bias term |
+| `total_samples` | `20` | calibration | Chart detections to collect before solving |
+| `k_best` | `15` | calibration | Best detections kept for averaging |
+| `confidence_threshold` | `0.8` | calibration | Minimum chart detection confidence |
+| `visualize_patches` | `false` | calibration | Show warped chart with patch ROIs (debug only; skips matrix computation when `true`) |
+| `visualize_chart` | `false` | calibration | Show detected chart outline on raw image |
+
+The matrix output path is set in the launch files as `$(find color_calibration)/config/color_calibration_matrix.xml`.
 
 ---
 
@@ -152,7 +170,7 @@ roslaunch color_calibration color_correction.launch \
 |----------|---------|-------------|
 | `input_topic` | `/zed2i/zed_node/rgb/image_rect_color` | Camera image topic |
 | `output_topic` | `/color_calibration/debug` or `/color_correction/corrected_image` | Output image topic |
-| `color_gamma` | `2.4` | Gamma for linearization; must match between calibrate and correct |
+| `color_gamma` | `2.4` | Overrides `gamma` from YAML; must match between calibrate and correct |
 
 The matrix file path is set in the launch files as `$(find color_calibration)/config/color_calibration_matrix.xml`.
 
@@ -162,13 +180,11 @@ The matrix file path is set in the launch files as `$(find color_calibration)/co
 
 ### color_calibration_node
 
-One-shot calibration. Subscribes to `input_topic`, publishes debug images on `output_topic`, writes the matrix to `color_calibration_matrix_path`.
+One-shot calibration. Subscribes to `input_topic`, publishes debug images on `output_topic`, writes the matrix to `color_calibration_matrix_path`. Reads calibration-specific settings from `config/color_calibration.yaml`.
 
 ### color_correction_node
 
-Continuous correction. Subscribes to `input_topic`, publishes corrected images on `output_topic`, reads the matrix from `color_calibration_matrix_path`.
-
-Both nodes accept `gamma` (default `2.4`), `input_topic`, and `output_topic` as private parameters.
+Continuous correction. Subscribes to `input_topic`, publishes corrected images on `output_topic`, reads the matrix from `color_calibration_matrix_path`. Uses `gamma` from the same YAML file.
 
 ---
 
@@ -196,6 +212,6 @@ The matrix is camera- and lighting-specific. Re-calibrate when changing cameras 
 | Symptom | Fix |
 |---------|-----|
 | `No board candidate found` | Move chart closer/further, improve lighting, make sure there is enough of a contrast between edges of the checkerboard and background |
-| Node never saves matrix | Hold chart steady longer; check debug topic |
+| Node never saves matrix | Hold chart steady longer; check debug topic; ensure debug visualizations flags are set to false in YAML |
 | `Gamma mismatch` | Use the same `color_gamma` in both launch files, or re-calibrate |
 | No correction output | Check that the matrix file exists and path is correct |

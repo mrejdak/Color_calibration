@@ -43,44 +43,13 @@ private:
     ros::Publisher chart_pub;
     std::string calibration_matrix_path;
 
-    /*
-    **CONFIG**
-    CALIBRATION_MATRIX_ROWS{
-        possible values: {3, 4}
-            3 - calculates calibration matrix without bias - [R G B] * M(3,3) = [R' G' B']
-            4 - calculates calibration matrix with bias - [R G B 1] * M(4,3) = [R' G' B'] - (adds black offset correction)
-    }
-    K_BEST{
-        possible values: int
-            determines how many acceptable samples are used for calculating calibration matrix
-    }
-    TOTAL_SAMPLES{
-        possible values: int
-            determines how many acceptable samples are collected before calculating calibration matrix
-    }
-    CONFIDENCE_THRESHOLD{
-        possible values: [0., 1.]
-            confidence threshold for found charts
-    }
-    GAMMA{
-        possible values: float
-            gamma value for inverse gamma correction before processing and re-applying gamma after correction
-    }
-    */
-    const int CALIBRATION_MATRIX_ROWS = 3;
-    const int K_BEST = 15;
-    const int TOTAL_SAMPLES = 20;
-    const float CONFIDENCE_THRESHOLD = 0.8;
+    int calibration_matrix_rows;
+    int k_best;
+    int total_samples;
+    float confidence_threshold;
     float gamma;
-
-    /*
-    **DEBUG**
-    Debugging purposes only, visualization returns before calculating calibration
-    VISUALIZE_PATCHES - shows warped chart if found with patches' ROIs marked
-    VISUALIZE_CHART - shows original image with chart marked
-    */
-    const bool VISUALIZE_PATCHES = false;
-    const bool VISUALIZE_CHART = false;
+    bool visualize_patches;
+    bool visualize_chart;
 
     /*
     Color chart layout in patches

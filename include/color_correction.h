@@ -30,5 +30,5 @@ private:
     bool has_pending_image = false;
     bool stop_processing = false;
     
-    float gamma = 2.4f;
+    float gamma;
 };
